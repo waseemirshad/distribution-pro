@@ -172,7 +172,7 @@ bilkul theek choice hai — magar **is machine par wo ban nahi sakta**:
 
 Is liye wahi **poora blueprint (sab 12 modules, wahi business rules, wahi reports, wahi print)**
 aik aisi stack me implement kiya gaya jo:
-1. yahan **ban kar, chal kar, test ho kar** verify hui (62/62 API tests + 28 pages ka UI test), aur
+1. yahan **ban kar, chal kar, test ho kar** verify hui (62/62 API + business tests, aur 28 pages + POS billing flow ka browser test), aur
 2. aap ke paas **is lamhe chal jati hai** — sirf `START.bat` double-click.
 
 Kya kya barabar hai:
@@ -224,9 +224,11 @@ distribution-pro/
 
 ```bash
 npm test        # 62 tests: billing, FEFO, credit lock, returns, van, cheques, GL balance, 32 reports
-npm run test:ui # 28 pages + login ka UI test (pehle: npm i -D jsdom)
+npm run test:ui # 28 pages render + dashboard/reports/customers data + POS flow (pehle ek dafa: npm i -D jsdom)
 ```
-Dono green hone chahiye: `62 passed / 0 failed` aur `UI TEST: ... 0 failed`.
+Dono green hone chahiye: `62 passed / 0 failed` aur `UI TEST: 39 passed, 0 failed`
+(repo me `tests/smoke.js` aur `tests/ui-smoke.js` mojood hain — `npm test` asli database ko chhoota bhi nahi,
+apna alag temporary DB banata hai).
 
 ## 11. Keyboard shortcuts
 

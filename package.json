@@ -1,0 +1,37 @@
+{
+  "name": "distribution-pro",
+  "version": "1.0.0",
+  "description": "Distribution Pro — Wholesale & FMCG Distribution ERP (POS billing, carton+loose units, batches & FEFO, sales/purchase returns, order booking, van sales & settlement, schemes & claims, credit limit lock, cheque/PDC register, receipts with FIFO allocation, salesmen commissions, cash closing, 32 reports). Runs offline on Node.js with zero required dependencies.",
+  "main": "server/index.js",
+  "private": true,
+  "scripts": {
+    "start": "node --no-warnings server/index.js",
+    "dev": "node --no-warnings --watch server/index.js",
+    "seed": "node --no-warnings server/seed.js",
+    "demo": "node --no-warnings server/seed.js --demo",
+    "reset": "node --no-warnings server/seed.js --reset",
+    "fresh": "node --no-warnings server/seed.js --empty",
+    "test": "node --no-warnings tests/smoke.js",
+    "test:ui": "node --no-warnings tests/ui-smoke.js"
+  },
+  "keywords": [
+    "distribution",
+    "erp",
+    "fmcg",
+    "wholesale",
+    "pos",
+    "van-sales",
+    "inventory",
+    "urdu",
+    "offline"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "optionalDependencies": {
+    "better-sqlite3": "^11.5.0"
+  },
+  "devDependencies": {
+    "jsdom": "^24.0.0"
+  }
+}

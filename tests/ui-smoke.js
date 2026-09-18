@@ -121,6 +121,47 @@ async function main() {
   const custRows = doc.querySelectorAll('#view table tbody tr').length;
   t('customers list me demo customers dikhe', custRows > 3, 'rows=' + custRows);
 
+
+  /* ---------------- POS billing flow (asli bill) ---------------- */
+  errors.length = 0;
+  apiErrors.length = 0;
+  win.DP.go('pos');
+  await sleep(1800);
+  const hdr = { authorization: 'Bearer ' + win.DP.token };
+  const prods = await (await fetch(BASE + '/api/products?limit=5', { headers: hdr })).json();
+  const custs = await (await fetch(BASE + '/api/customers?limit=5', { headers: hdr })).json();
+  t('POS: products + customers load hue', prods.length > 0 && custs.length > 0, `p=${prods.length} c=${custs.length}`);
+  const posInputs = [...doc.querySelectorAll('#view input')];
+  const sIn = posInputs.find((i) => /Item ka naam/.test(i.placeholder || ''));
+  let cartOk = false;
+  if (sIn) {
+    sIn.value = prods[0].name.slice(0, 6);
+    sIn.dispatchEvent(new win.Event('input', { bubbles: true }));
+    await sleep(400);
+    const openList = [...doc.querySelectorAll('.search-list')].find((l) => !l.classList.contains('hidden'));
+    const hit = openList && openList.querySelector('.search-item');
+    if (hit) hit.click();
+    await sleep(400);
+    cartOk = doc.querySelectorAll('.line-row').length > 1;
+  }
+  t('POS: item cart me gaya', cartOk);
+  const cIn = [...doc.querySelectorAll('#view input')].find((i) => /Dukan/.test(i.placeholder || ''));
+  if (cIn) {
+    cIn.value = custs[0].name.slice(0, 6);
+    cIn.dispatchEvent(new win.Event('input', { bubbles: true }));
+    await sleep(400);
+    const cl = [...doc.querySelectorAll('.search-list')].find((l) => !l.classList.contains('hidden'));
+    const chit = cl && cl.querySelector('.search-item');
+    if (chit) chit.click();
+    await sleep(500);
+  }
+  const saveBtn = [...doc.querySelectorAll('#view button')].find((b) => b.textContent.trim() === 'Save only');
+  if (saveBtn) saveBtn.click();
+  await sleep(2500);
+  const posBody = doc.body.textContent;
+  t('POS: bill save hua (ya credit-limit override modal aaya)', posBody.includes('Bill save ho gaya') || posBody.includes('Bill ban gaya') || posBody.includes('Credit limit'), posBody.slice(-200));
+  t('POS: koi JS error nahi', errors.length === 0, errors.slice(0, 2).join(' | '));
+
   t('koi JS error nahi aaya (aakhri page ke baad)', errors.length === 0, errors.slice(0, 3).join(' | '));
 
   console.log(`\n  UI TEST: ${pass} passed, ${fail} failed\n`);

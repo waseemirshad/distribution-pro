@@ -309,6 +309,16 @@
     }
   }
 
+  DP.onUnauthorized = function () {
+    if (!DP.state.user) return;
+    DP.state.user = null;
+    DP.setToken('');
+    DP.toast('Session khatam ho gaya — dobara login karein', 'warn');
+    document.getElementById('app').classList.add('hidden');
+    document.getElementById('login-screen').classList.remove('hidden');
+    setTimeout(() => $('login-user').focus(), 200);
+  };
+
   function logout() {
     DP.post('/auth/logout', {}).catch(() => null);
     DP.setToken('');
@@ -450,6 +460,7 @@
     fillUserChips();
     wire();
     serverInfo = await fetch('/api/server/info').then((r) => r.json()).catch(() => null);
+    window.DP_INFO = serverInfo; // Settings page me server version dikhane ke liye
     if (serverInfo) {
       $('server-info').textContent = `v${serverInfo.version} • ${serverInfo.engine} • ${serverInfo.node} • DB: ${serverInfo.db_file}` + (serverInfo.lan_ips && serverInfo.lan_ips.length ? ' • LAN: http://' + serverInfo.lan_ips[0] + ':' + serverInfo.port : '');
       $('app-version').textContent = 'v' + serverInfo.version;

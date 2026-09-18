@@ -128,6 +128,14 @@
       err.code = data && data.code;
       err.status = res.status;
       err.data = data;
+      // session khatam / token invalid -> app shell ko batayein (login screen dikhaye)
+      if ((res.status === 401 || err.code === 'UNAUTHORIZED') && path.indexOf('/auth/login') !== 0 && typeof DP.onUnauthorized === 'function') {
+        try {
+          DP.onUnauthorized(err);
+        } catch (e) {
+          /* ignore */
+        }
+      }
       throw err;
     }
     return data;

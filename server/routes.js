@@ -92,6 +92,19 @@ function readBody(req, limit = 8 * 1024 * 1024) {
   });
 }
 
+function need(user, perm) {
+  if (!user) {
+    const e = new Error('Login zaroori hai');
+    e.code = 'UNAUTHORIZED';
+    throw e;
+  }
+  if (!A.can(user, perm)) {
+    const e = new Error('Is kaam ki ijazat nahi hai');
+    e.code = 'FORBIDDEN';
+    throw e;
+  }
+}
+
 function canSeeCosts(user) {
   return A.can(user, 'cost.view');
 }
@@ -360,7 +373,7 @@ route('GET', '/api/lookup/heads', 'masters.view', () => db().all('SELECT * FROM 
 route('GET', '/api/crud/:table', null, ({ params, query, user }) => {
   const cfg = CRUD[params.table];
   if (!cfg) throw new Error('Unknown table: ' + params.table);
-  if (!A.can(user, cfg.perm + '.view')) throw new Error('Is kaam ki ijazat nahi hai');
+  need(user, cfg.perm + '.view');
   const where = [];
   const args = [];
   if (query.q && cfg.search.length) {
@@ -385,7 +398,7 @@ route('GET', '/api/crud/:table', null, ({ params, query, user }) => {
 route('POST', '/api/crud/:table', null, ({ params, body, user }) => {
   const cfg = CRUD[params.table];
   if (!cfg) throw new Error('Unknown table');
-  if (!A.can(user, cfg.perm + '.manage')) throw new Error('Is kaam ki ijazat nahi hai');
+  need(user, cfg.perm + '.manage');
   const data = coerceCrud(cfg, body);
   if (cfg.table === 'customers' && !data.name) throw new Error('Customer ka naam zaroori hai');
   if (cfg.table === 'products' && !data.name) throw new Error('Product ka naam zaroori hai');
@@ -399,7 +412,7 @@ route('POST', '/api/crud/:table', null, ({ params, body, user }) => {
 route('PUT', '/api/crud/:table/:id', null, ({ params, body, user }) => {
   const cfg = CRUD[params.table];
   if (!cfg) throw new Error('Unknown table');
-  if (!A.can(user, cfg.perm + '.manage')) throw new Error('Is kaam ki ijazat nahi hai');
+  need(user, cfg.perm + '.manage');
   const id = U.int(params.id);
   const data = coerceCrud(cfg, body);
   if (cfg.table === 'price_tiers' && data.is_default) db().run('UPDATE price_tiers SET is_default=0');
@@ -414,7 +427,7 @@ route('PUT', '/api/crud/:table/:id', null, ({ params, body, user }) => {
 route('DELETE', '/api/crud/:table/:id', null, ({ params, user }) => {
   const cfg = CRUD[params.table];
   if (!cfg) throw new Error('Unknown table');
-  if (!A.can(user, cfg.perm + '.manage')) throw new Error('Is kaam ki ijazat nahi hai');
+  need(user, cfg.perm + '.manage');
   const id = U.int(params.id);
   try {
     db().run(`DELETE FROM ${cfg.table} WHERE id=?`, id);
@@ -1256,7 +1269,14 @@ async function handle(req, res) {
         return sendJson(res, 200, out);
       } catch (err) {
         const code = err.code || 'ERROR';
-        const status = code === 'CREDIT_LIMIT' || code === 'GEO_FENCE' ? 409 : 400;
+        const status =
+          code === 'CREDIT_LIMIT' || code === 'GEO_FENCE'
+            ? 409
+            : code === 'UNAUTHORIZED'
+              ? 401
+              : code === 'FORBIDDEN'
+                ? 403
+                : 400;
         return sendJson(res, status, {
           error: err.message || String(err),
           code,

@@ -162,6 +162,25 @@ async function main() {
   t('POS: bill save hua (ya credit-limit override modal aaya)', posBody.includes('Bill save ho gaya') || posBody.includes('Bill ban gaya') || posBody.includes('Credit limit'), posBody.slice(-200));
   t('POS: koi JS error nahi', errors.length === 0, errors.slice(0, 2).join(' | '));
 
+
+  /* ---------------- role check (RBAC) — salesman se login ---------------- */
+  errors.length = 0;
+  apiErrors.length = 0;
+  win.DP.state.user = null;
+  win.DP.setToken('');
+  doc.getElementById('login-user').value = 'salesman';
+  doc.getElementById('login-pass').value = 'salesman123';
+  doc.getElementById('login-form').dispatchEvent(new win.Event('submit', { bubbles: true, cancelable: true }));
+  await sleep(2500);
+  const navCount = doc.querySelectorAll('#nav .nav-item').length;
+  t('salesman login: nav me sirf ijazat wale pages', navCount > 3 && navCount < 20, 'nav=' + navCount);
+  win.DP.go('dashboard');
+  await sleep(1200);
+  const smText = doc.getElementById('view').textContent;
+  t('salesman dashboard theek chala', smText.length > 20 && !smText.includes('Page load nahi hua'), smText.slice(0, 120));
+  const lookupsOk = (win.DP.state.lookups.warehouses || []).length > 0;
+  t('salesman ke lookups (godown waghera) aa gaye', lookupsOk, JSON.stringify(Object.entries(win.DP.state.lookups).map(([k, v]) => k + ':' + (v || []).length)));
+
   t('koi JS error nahi aaya (aakhri page ke baad)', errors.length === 0, errors.slice(0, 3).join(' | '));
 
   console.log(`\n  UI TEST: ${pass} passed, ${fail} failed\n`);

@@ -174,17 +174,20 @@
     const me = await DP.get('/auth/me');
     DP.state.user = me.user;
     DP.state.settings = (await safeGet('/settings', {})) || {};
-    const [warehouses, tiers, salesmen, routes, companies, categories, heads, suppliers] = await Promise.all([
-      safeGet('/lookup/warehouses', []),
-      safeGet('/lookup/tiers', []),
-      safeGet('/lookup/salesmen', []),
-      safeGet('/lookup/routes', []),
-      safeGet('/lookup/companies', []),
-      safeGet('/lookup/categories', []),
-      safeGet('/lookup/heads', []),
-      safeGet('/crud/suppliers?limit=1000', []),
-    ]);
-    DP.state.lookups = { warehouses: warehouses || [], tiers: tiers || [], salesmen: salesmen || [], routes: routes || [], companies: companies || [], categories: categories || [], heads: heads || [], suppliers: suppliers || [] };
+    // ek hi call me sab dropdown data (har role ke liye) — cost waghera nahi aata
+    const base = (await safeGet('/lookups', {})) || {};
+    let suppliers = base.suppliers || [];
+    if (!suppliers.length && DP.can('suppliers.view')) suppliers = (await safeGet('/crud/suppliers?limit=1000', [])) || [];
+    DP.state.lookups = {
+      warehouses: base.warehouses || [],
+      tiers: base.tiers || [],
+      salesmen: base.salesmen || [],
+      routes: base.routes || [],
+      companies: base.companies || [],
+      categories: base.categories || [],
+      heads: base.heads || [],
+      suppliers: suppliers || [],
+    };
     DP.state.paper = DP.state.settings.print_paper || '80mm';
     const saved = Number(localStorage.getItem('dp_warehouse') || 0);
     DP.state.warehouseId = saved || Number(DP.state.settings.default_warehouse_id) || (DP.state.lookups.warehouses[0] && DP.state.lookups.warehouses[0].id) || null;

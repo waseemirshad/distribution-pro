@@ -224,9 +224,9 @@ distribution-pro/
 
 ```bash
 npm test        # 62 tests: billing, FEFO, credit lock, returns, van, cheques, GL balance, 32 reports
-npm run test:ui # 28 pages render + dashboard/reports/customers data + poora POS billing flow (pehle ek dafa: npm i -D jsdom)
+npm run test:ui # 28 pages + dashboard/reports/customers data + poora POS billing flow + RBAC (salesman) (pehle ek dafa: npm i -D jsdom)
 ```
-Dono green hone chahiye: `62 passed / 0 failed` aur `UI TEST: 43 passed, 0 failed`
+Dono green hone chahiye: `62 passed / 0 failed` aur `UI TEST: 46 passed, 0 failed`
 (repo me `tests/smoke.js` aur `tests/ui-smoke.js` mojood hain — `npm test` asli database ko chhoota bhi nahi,
 apna alag temporary DB banata hai).
 

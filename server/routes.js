@@ -315,6 +315,27 @@ route('GET', '/api/alerts', 'dashboard.view', () => {
 });
 
 /* ------------------------------------------------------------------ lookups */
+// sab logged-in users ke liye basic reference data (dropdowns ke liye) — koi cost nahi
+route('GET', '/api/lookups', null, ({ user }) => {
+  if (!user) {
+    const e = new Error('Login zaroori hai');
+    e.code = 'UNAUTHORIZED';
+    throw e;
+  }
+  const d = db();
+  const out = {
+    warehouses: d.all('SELECT * FROM warehouses WHERE active=1 ORDER BY id'),
+    tiers: d.all('SELECT * FROM price_tiers ORDER BY id'),
+    salesmen: d.all('SELECT id, name, code, phone, route_id, commission_pct, active FROM salesmen WHERE active=1 ORDER BY name'),
+    routes: d.all('SELECT id, name, area, weekday FROM routes WHERE active=1 ORDER BY name'),
+    companies: d.all('SELECT id, name, city FROM companies WHERE active=1 ORDER BY name'),
+    categories: d.all('SELECT id, name, parent_id FROM categories WHERE active=1 ORDER BY name'),
+    heads: d.all('SELECT id, name, is_cogs FROM expense_heads WHERE active=1 ORDER BY name'),
+  };
+  if (A.can(user, 'suppliers.view')) out.suppliers = d.all('SELECT id, name, phone, city FROM suppliers WHERE active=1 ORDER BY name');
+  return out;
+});
+
 route('GET', '/api/lookup/products', 'products.view', ({ query, user }) => {
   const q = '%' + (query.q || '') + '%';
   const rows = db().all(
